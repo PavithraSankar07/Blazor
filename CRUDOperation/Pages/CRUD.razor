@@ -1,0 +1,165 @@
+@page "/"
+<h1>Hello</h1>
+<div class="form-input">
+    <input type="text" @bind="newInfo.Name" placeholder="Name">
+</div>
+<div class="form-input">
+    <input type="text" @bind="newInfo.MailID" placeholder="MailID">
+</div>
+<div class="form-input">
+    <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
+</div>
+@* <div class="form-input">
+    <input type="text" @bind="newInfo.ID" placeholder="ID">
+</div> *@
+<div class="form-input">
+<InputFile OnChange="OnInputFileChange" />
+</div>
+<div class="form-input">
+  <InputSelect @bind-Value="newInfo.Department" TValue="string">
+    <option value="">Select Department</option>
+    @foreach(var dept in Departments)
+    {
+        <option value="@dept">@dept</option>
+    }
+  </InputSelect>
+</div>
+@* @if (!string.IsNullOrEmpty(newInfo.Department))
+{
+    <div class="form-input">
+        <textarea @bind="newInfo.Comment" placeholder="Enter your comment here"></textarea>
+    </div>
+} *@
+
+<button @onclick="SaveInfo">@button</button>
+<h2>Student List</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Mobile</th>
+            <th>MailID</th>
+            <th>Department</th>
+            @* <th>Comments</th> *@
+              <th>Photo</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (PersonalInfo personalInfo in personalInfos)
+        {
+            <tr>
+                <td>@personalInfo.Name</td>
+                <td>@personalInfo.ID</td>
+                <td>@personalInfo.Mobile</td>
+                <td>@personalInfo.MailID</td>
+                <td>@personalInfo.Department</td>
+                @* <td>@personalInfo.Comment</td> *@
+                <td>@if (!string.IsNullOrEmpty(personalInfo.Photo))
+                    {
+                        <img src="@personalInfo.Photo" alt="Uploaded Image" style="max-width: 300px; max-height: 300px;" />
+                    }
+                    else
+                    {
+                        <span>No Photo</span>
+                    }
+                </td>
+                <td>
+                    <button @onclick="() => EditInfo(personalInfo)">Edit</button>
+                    <button @onclick="() => DeleteInfo(personalInfo)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+     private static int s_id = 1;
+    List<PersonalInfo> personalInfos = new();
+    List<string> Departments = new List<string>
+        {
+            "ECE","CSE", "EEE"
+        };
+    PersonalInfo newInfo = new();
+    
+    string button = "Add";
+    bool isEdit = false;
+    PersonalInfo selectedInfo;
+  
+  @* private string? ImageDataUrl; *@
+
+ public const long maxFileSize = 1024 * 1024 * 5; 
+
+public async Task OnInputFileChange(InputFileChangeEventArgs e)
+{
+    var file = e.File;
+    if (file != null)
+    {
+        using var stream = file.OpenReadStream(maxFileSize);
+        var buffer = new byte[file.Size];
+        await stream.ReadAsync(buffer);
+
+        newInfo.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+    }
+}
+    @* Edit the data *@
+    public void EditInfo(PersonalInfo personal)
+    {
+        isEdit = true;
+        selectedInfo = personal;
+       
+            newInfo.ID = personal.ID;
+            newInfo.Name = personal.Name;
+            newInfo.Mobile = personal.Mobile;
+            newInfo.MailID = personal.MailID;
+            newInfo.Photo = personal.Photo;
+            newInfo.Department = personal.Department;
+            @* Comment = personal.Comment *@
+        
+        
+        button = "Update";
+    }
+    @* Create the form *@
+    
+    public void SaveInfo()
+    {
+        if (isEdit)
+        {
+            @* selectedInfo.ID = newInfo.ID; *@
+            selectedInfo.Name = newInfo.Name;
+            selectedInfo.Mobile = newInfo.Mobile;
+            selectedInfo.MailID = newInfo.MailID;
+       selectedInfo.Photo= newInfo.Photo; 
+       selectedInfo.Department=newInfo.Department;
+       @* selectedInfo.Comment = newInfo.Comment; *@
+
+            isEdit = false;
+            button = "Add"; 
+        }
+        else
+        {
+           newInfo.ID = s_id++;
+            personalInfos.Add(new PersonalInfo
+            {
+                ID = newInfo.ID,
+                Name = newInfo.Name,
+                Mobile = newInfo.Mobile,
+                MailID = newInfo.MailID,
+                Photo = newInfo.Photo,
+                Department=newInfo.Department,
+                @* Comment = newInfo.Comment *@
+
+            });
+        }
+        newInfo = new PersonalInfo();
+    
+    }
+    @* Delete the data *@
+   public void DeleteInfo(PersonalInfo id)
+    {
+
+        personalInfos.Remove(id);
+
+    }
+
+}
