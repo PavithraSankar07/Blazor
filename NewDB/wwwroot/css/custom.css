@@ -1,0 +1,22 @@
+/* custom.css */
+button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.sidebar {
+  background-color: #333;
+  color: white;
+  padding: 15px;
+  width: 250px;
+  height: 100vh; /* full height */
+}
+
+.main-only-content {
+  margin-left: 0; /* if no sidebar */
+  padding: 20px;
+}
