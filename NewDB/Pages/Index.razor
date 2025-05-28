@@ -19,20 +19,32 @@
     <InputFile OnChange="OnInputFileChange" />
 </div>
 <div class="form-input">
-    <InputSelect @bind-Value="newInfo.Department" TValue="string">
-        <option value="">Select Department</option>
-        @foreach (var dept in Departments)
+    <InputSelect @bind-Value="newInfo.Degree" TValue="string">
+        <option value="">Select Degree</option>
+        @foreach (var dept in Degrees)
         {
             <option value="@dept">@dept</option>
         }
     </InputSelect>
 </div>
-@* @if (!string.IsNullOrEmpty(newInfo.Department))
+@if (!string.IsNullOrEmpty(newInfo.Degree))
 {
     <div class="form-input">
-        <textarea @bind="newInfo.Comment" placeholder="Enter your comment here"></textarea>
+        <textarea @bind="newInfo.Department" placeholder="Enter your Department here"></textarea>
+
     </div>
-} *@
+}
+<div class="form-input">
+    <InputDate @bind-Value="newInfo.DOB" />
+
+</div>
+<select multiple @bind="newInfo.SelectedDepartments">
+    @foreach (var dept in departments)
+    {
+        <option value="@dept">@dept</option>
+    }
+</select>
+
 
 <button @onclick="SaveInfo">@button</button>
 <h2>Student List</h2>
@@ -43,9 +55,11 @@
             <th>ID</th>
             <th>Mobile</th>
             <th>MailID</th>
-            <th>Department</th>
-            @* <th>Comments</th> *@
+            <th>Degree</th>
+            <th>Departments</th>
             <th>Photo</th>
+            <th>DOB</th>
+            <th>Selected</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -57,8 +71,8 @@
                 <td>@personalInfo.ID</td>
                 <td>@personalInfo.Mobile</td>
                 <td>@personalInfo.MailID</td>
+                <td>@personalInfo.Degree</td>
                 <td>@personalInfo.Department</td>
-                @* <td>@personalInfo.Comment</td> *@
 
                 <td>@if (personalInfo.Photo != null && personalInfo.Photo.Length > 0)
                     {
@@ -71,6 +85,10 @@
                     }
 
                 </td>
+                <td>@personalInfo.DOB.ToString("yyyy-MM-dd")</td>
+                @* <td>@personalInfo.SelectedDepartments</td> *@
+                <td>@(personalInfo.SelectedDepartments != null ? string.Join(", ", personalInfo.SelectedDepartments) : "")
+                </td>
                 <td>
                     <button @onclick="() => EditInfo(personalInfo)">Edit</button>
                     <button @onclick="() => DeleteInfo(personalInfo)">Delete</button>
@@ -80,11 +98,28 @@
     </tbody>
 </table>
 @code {
+    List<string> departments = new() { "HR", "Sales", "IT", "Finance" };
+    void OnDepartmentsChanged(ChangeEventArgs e)
+    {
+        var selectedValues = e.Value as string[];
+        if (selectedValues != null)
+        {
+            newInfo.SelectedDepartments = selectedValues;
+        }
+        else if (e.Value is not null)
+        {
+            newInfo.SelectedDepartments = new string[] { e.Value.ToString() };
+        }
+        else
+        {
+            newInfo.SelectedDepartments = Array.Empty<string>();
+        }
+    }
     private static int s_id = 1;
     List<StudentInfo> personalInfos = new();
-    List<string> Departments = new List<string>
+    List<string> Degrees = new List<string>
 {
-"ECE","CSE", "EEE"
+"Bachelor of Degree","Master of Degree", "Engineering"
 };
     StudentInfo newInfo = new();
 
@@ -109,11 +144,11 @@
         }
     }
 
-  protected override Task OnInitializedAsync()
-{
-    personalInfos = studentService.GetAllStudent();
-    return Task.CompletedTask;
-}
+    protected override Task OnInitializedAsync()
+    {
+        personalInfos = studentService.GetAllStudent();
+        return Task.CompletedTask;
+    }
 
 
 
@@ -128,60 +163,68 @@
         newInfo.Mobile = personal.Mobile;
         newInfo.MailID = personal.MailID;
         newInfo.Photo = personal.Photo;
+        newInfo.Degree = personal.Degree;
         newInfo.Department = personal.Department;
-        @* Comment = personal.Comment *@
-
+        newInfo.DOB = personal.DOB;
+        newInfo.SelectedDepartments = personal.SelectedDepartments;
 
         button = "Update";
     }
     @* Create the form *@
 
- public void SaveInfo()
-{
-    if (isEdit)
+    public void SaveInfo()
     {
-        // update DB
-        var updatedInfo = new StudentInfo
-        {
-            ID = newInfo.ID,
-            Name = newInfo.Name,
-            Mobile = newInfo.Mobile,
-            MailID = newInfo.MailID,
-            Department = newInfo.Department,
-            Photo = newInfo.Photo ?? selectedInfo.Photo
-        };
 
-        studentService.UpdateRec(updatedInfo);
+        newInfo.DOB = DateTime.SpecifyKind(newInfo.DOB, DateTimeKind.Utc);
 
-        // update UI in-place (don't reload list)
-        var existing = personalInfos.FirstOrDefault(p => p.ID == selectedInfo.ID);
-        if (existing != null)
+        if (isEdit)
         {
-            existing.Name = updatedInfo.Name;
-            existing.Mobile = updatedInfo.Mobile;
-            existing.MailID = updatedInfo.MailID;
-            existing.Department = updatedInfo.Department;
-            existing.Photo = updatedInfo.Photo;
+            var updatedInfo = new StudentInfo
+            {
+                ID = newInfo.ID,
+                Name = newInfo.Name,
+                Mobile = newInfo.Mobile,
+                MailID = newInfo.MailID,
+                Photo = newInfo.Photo ?? selectedInfo.Photo,
+                Degree = newInfo.Degree,
+                Department = newInfo.Department,
+                DOB = newInfo.DOB,
+                SelectedDepartments = newInfo.SelectedDepartments
+            };
+
+            studentService.UpdateRec(updatedInfo);
+
+            var existing = personalInfos.FirstOrDefault(p => p.ID == selectedInfo.ID);
+            if (existing != null)
+            {
+                existing.Name = updatedInfo.Name;
+                existing.Mobile = updatedInfo.Mobile;
+                existing.MailID = updatedInfo.MailID;
+                existing.Photo = newInfo.Photo;
+                existing.Degree = newInfo.Degree;
+                existing.Department = newInfo.Department;
+                existing.DOB = newInfo.DOB;
+                existing.SelectedDepartments = newInfo.SelectedDepartments;
+            }
+
+            isEdit = false;
+            button = "Add";
+        }
+        else
+        {
+            studentService.InsertRec(newInfo);
+            personalInfos = studentService.GetAllStudent();
         }
 
-        isEdit = false;
-        button = "Add";
+        newInfo = new StudentInfo();
     }
-    else
-    {
-        studentService.InsertRec(newInfo);
-        personalInfos = studentService.GetAllStudent(); // only reload on insert
-    }
-
-    newInfo = new StudentInfo();
-}
 
 
     @* Delete the data *@
     public void DeleteInfo(StudentInfo info)
     {
         studentService.DeleteRec(info);
-        personalInfos = studentService.GetAllStudent(); // 🔄 Refresh
+        personalInfos = studentService.GetAllStudent();
     }
 
 

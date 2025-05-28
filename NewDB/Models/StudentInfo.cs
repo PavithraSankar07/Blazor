@@ -20,8 +20,13 @@ namespace NewDB.Models
         public string MailID { get; set; }
         [Column("photo")]
         public byte[] Photo { get; set; }
+        [Column("degree")]
+        public string Degree { get; set; }
         [Column("department")]
         public string Department { get; set; }
-        // public string Comment { get; set; }
+          [Column("dob")]
+        public DateTime DOB { get; set; }
+         [Column("selecteddepartments")]
+        public string[] SelectedDepartments { get; set; } = Array.Empty<string>();
     }
 }
