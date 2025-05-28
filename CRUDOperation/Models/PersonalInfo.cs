@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CRUDOperation.Models
@@ -12,16 +13,19 @@ namespace CRUDOperation.Models
         public string Name { get; set; }
         public string MailID { get; set; }
         public string Photo { get; set; }
+        public string Degree { get; set; }
         public string Department { get; set; }
-        public string Comment { get; set; }
+        public DateTime DOB { get; set; }
+        public string[] SelectedDepartments { get; set; } = Array.Empty<string>();
+
 
         // public PersonalInfo()
         // {
         //     ID = s_id++;
         // }
-        
-        
-        
-        
+
+
+
+
     }
 }
