@@ -1,0 +1,202 @@
+@page "/"
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<h1>User List</h1>
+
+<div class="form-input">
+    <input type="text" @bind="newInfo.Name" placeholder="Name">
+</div>
+<div class="form-input">
+    <input type="text" @bind="newInfo.MailID" placeholder="MailID">
+</div>
+<div class="form-input">
+    <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
+</div>
+@* <div class="form-input">
+    <input type="text" @bind="newInfo.ID" placeholder="ID">
+</div> *@
+<div class="form-input">
+    <InputFile OnChange="OnInputFileChange" />
+</div>
+<div class="form-input">
+    <InputSelect @bind-Value="newInfo.Degree" TValue="string">
+        <option value="">Select Degree</option>
+        @foreach (var dept in Degrees)
+        {
+            <option value="@dept">@dept</option>
+        }
+    </InputSelect>
+</div>
+@if (!string.IsNullOrEmpty(newInfo.Degree))
+{
+    <div class="form-input">
+        <textarea @bind="newInfo.Department" placeholder="Enter your Department here"></textarea>
+
+    </div>
+}
+<div class="form-input">
+    <InputDate @bind-Value="newInfo.DOB" />
+
+</div>
+<select multiple @bind="newInfo.SelectedDepartments">
+    @foreach (var dept in departments)
+    {
+        <option value="@dept">@dept</option>
+    }
+</select>
+
+<br>
+<button @onclick="SaveInfo">@button</button>
+
+<hr />
+@* <h1>Data</h1> *@
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Mobile</th>
+            <th>MailID</th>
+            <th>Degree</th>
+            <th>Departments</th>
+            <th>Photo</th>
+            <th>DOB</th>
+            <th>Selected</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var info in personalInfos)
+        {
+            <tr>
+                <td>@info.Name</td>
+                <td>@info.ID</td>
+                <td>@info.Mobile</td>
+                <td>@info.MailID</td>
+                <td>@info.Degree</td>
+                <td>@info.Department</td>
+                <td>@if (!string.IsNullOrEmpty(info.Photo))
+                    {
+                        <img src="@info.Photo" alt="Uploaded Image" style="max-width: 300px; max-height: 300px;" />
+                    }
+                                else
+                    {
+                        <span>No Photo</span>
+                    }
+
+
+                </td>
+                <td>@info.DOB.ToString("yyyy-MM-dd")</td>
+                <td>@(info.SelectedDepartments != null ? string.Join(", ", info.SelectedDepartments) : "")
+                </td>
+                <td>
+                    <button @onclick="() => EditInfo(info)">Edit</button>
+                    <button @onclick="() => DeleteInfo(info)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    List<string> departments = new() { "HR", "Sales", "IT", "Finance", "Marketing" };
+    List<string> Degrees = new List<string>
+{
+"Bachelor of Degree","Master of Degree", "Engineering"
+};
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+            string imageBase64Data = Convert.ToBase64String(buffer);
+            string imageDataUrl = $"data:{file.ContentType};base64,{imageBase64Data}";
+            newInfo.Photo = imageDataUrl;
+        }
+    }
+
+    List<PersonalInfo> personalInfos = new();
+    PersonalInfo newInfo = new();
+    bool isEdit = false;
+    PersonalInfo selectedInfo;
+    string button = "Add";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    async Task LoadData()
+    {
+        personalInfos = await Http.GetFromJsonAsync<List<PersonalInfo>>("api/Personal");
+        StateHasChanged();
+    }
+
+
+
+
+    async Task SaveInfo()
+    {
+        Console.WriteLine("Sending data to API:");
+        Console.WriteLine($"ID: {newInfo.ID}");
+        Console.WriteLine($"Name: {newInfo.Name}");
+        Console.WriteLine($"Mobile: {newInfo.Mobile}");
+        Console.WriteLine($"MailID: {newInfo.MailID}");
+        Console.WriteLine($"Department: {newInfo.Department}");
+        @* Console.WriteLine($"Photo: {(newInfo.Photo?.Substring(0, 30) + "...")}"); *@
+
+        if (isEdit)
+        {
+            var putResponse = await Http.PutAsJsonAsync($"api/Personal/{selectedInfo.ID}", newInfo);
+            isEdit = false;
+            button = "Add";
+        }
+        else
+        {
+            @* newInfo.ID = 0; // clear ID *@
+            var postResponse = await Http.PostAsJsonAsync("api/Personal", newInfo);
+
+            if (!postResponse.IsSuccessStatusCode)
+            {
+                var errorText = await postResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"POST failed: {postResponse.StatusCode}");
+                Console.WriteLine($"Error response: {errorText}");
+            }
+        }
+
+        await LoadData();
+        newInfo = new PersonalInfo();
+    }
+
+    async Task DeleteInfo(PersonalInfo info)
+    {
+        await Http.DeleteAsync($"api/Personal/{info.ID}");
+        await LoadData();
+    }
+
+    void EditInfo(PersonalInfo info)
+    {
+        isEdit = true;
+        selectedInfo = info;
+      newInfo = new PersonalInfo
+{
+    ID = selectedInfo.ID,
+    Name = selectedInfo.Name,
+    Mobile = selectedInfo.Mobile,
+    MailID = selectedInfo.MailID,
+    Photo = selectedInfo.Photo,
+    Degree = selectedInfo.Degree,
+    Department = selectedInfo.Department,
+    DOB = selectedInfo.DOB,
+    SelectedDepartments = selectedInfo.SelectedDepartments != null ? selectedInfo.SelectedDepartments.ToArray() : Array.Empty<string>()
+};
+
+        button = "Update";
+    }
+
+
+}
