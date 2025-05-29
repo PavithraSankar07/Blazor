@@ -1,28 +1,59 @@
 @page "/"
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using static CRUDOperation.Models.PersonalInfo
+
+@inject IWebHostEnvironment env
+
+<EditForm Model="newInfo" OnSubmit="SaveInfo" >
 
 <div class="form-input">
+     <label for="nameInput">Name:</label>
     <input type="text" @bind="newInfo.Name" placeholder="Name">
 </div>
 <div class="form-input">
+    <label for="nameInput">MailID:</label>
     <input type="text" @bind="newInfo.MailID" placeholder="MailID">
 </div>
 <div class="form-input">
+    <label for="nameInput">MobileNumber:</label>
     <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
 </div>
 @* <div class="form-input">
-    <input type="text" @bind="newInfo.ID" placeholder="ID">
+    <label for="photo">Photo:</label>
+    <InputFile OnChange="PhotoUpload" />
+    @if (!string.IsNullOrEmpty(newInfo.Photo))
+    {
+        <img src="@newInfo.Photo" alt="Photo" style="max-width: 100px; max-height: 100px;" />
+    }
 </div> *@
 <div class="form-input">
-<InputFile OnChange="OnInputFileChange" />
-</div>
-<div class="form-input">
-  <InputSelect @bind-Value="newInfo.Degree" TValue="string">
-    <option value="">Select Degree</option>
-    @foreach(var dept in Degrees)
+    <label>Photo:</label>
+    <InputFile OnChange="PhotoUpload" />
+    
+    @if (!string.IsNullOrEmpty(newInfo.Photo))
     {
-        <option value="@dept">@dept</option>
+        <div>
+            <img src="@newInfo.Photo" alt="Uploaded Photo" style="max-width: 150px; max-height: 150px;" />
+        </div>
     }
-  </InputSelect>
+    @if (!string.IsNullOrEmpty(newInfo.Photo))
+    {
+        @* <div>
+            <small>File Name: @newInfo.Photo</small>
+        </div> *@
+    }
+</div>
+
+<div class="form-input">
+    <label for="nameInput">Degree:</label>
+    <InputSelect @bind-Value="newInfo.Degree">
+        <option value="">Select Degree</option>
+        @foreach (var dept in Degrees)
+        {
+            <option value="@dept">@dept</option>
+        }
+    </InputSelect>
 </div>
 @if (!string.IsNullOrEmpty(newInfo.Degree))
 {
@@ -32,24 +63,105 @@
     </div>
 }
 <div class="form-input">
-<InputDate @bind-Value="newInfo.DOB"/>
+    <label for="nameInput">DOB:</label>
+   <InputDate @bind-Value="newInfo.DOB"/>
+
 
 </div>
-@* <select multiple @onchange="OnDepartmentsChanged">
-    @foreach (var dept in departments)
-    {
-        <option value="@dept" selected="@newInfo.SelectedDepartments.Contains(dept)">@dept</option>
-    }
-</select> *@
-<select multiple @bind="newInfo.SelectedDepartments">
-    @foreach (var dept in departments)
-    {
-        <option value="@dept">@dept</option>
-    }
-</select>
+<div class="form-input">
+    <label for="nameInput">Department:</label>
+    <select multiple @bind="newInfo.SelectedDepartments">
+        @foreach (var dept in departments)
+        {
+            <option value="@dept">@dept</option>
+        }
+    </select>
+</div>
+@* <div class="form-input">
+    <div>
+    <label for="nameInput">Gender:</label>
+  <InputRadioGroup @bind-Value="newInfo.Gender">
+    <div class="input-group">
+      <InputRadio id="male" Value="GenderEnum.Male" />
+      <label for="male">Male</label>
+    </div>
+    <div class="input-group">
+      <InputRadio id="female" Value="GenderEnum.Female" />
+      <label for="female">Female</label>
+    </div>
+    <div class="input-group">
+      <InputRadio id="other" Value="GenderEnum.Other" />
+      <label for="other">Other</label>
+    </div>
+  </InputRadioGroup>
+  </div>
+</div> *@
+<div class="form-input">
+<label for="nameInput">Time:</label>
+<InputText @bind-Value="newInfo.Time" type="time"></InputText>
+</div>
+@* <div  class="form-input">
+    <div>
+    <label for="nameInput">Language:</label>
+  @foreach (var lang in languages)
+  {
+    <div class="input-group">
+      <input type="checkbox" 
+             checked="@newInfo.Languages.Contains(lang)" 
+             @onchange="e => OnLanguageChanged(lang, e)" />
+      <label>@lang</label>
+    </div>
+  }
+  </div>
+</div> *@
+<div class="form-input">
+  <label>Gender:</label>
+  <div class="input-inline-group">
+    <InputRadioGroup @bind-Value="newInfo.Gender">
+      <InputRadio id="male" Value="GenderEnum.Male" />
+      <label for="male">Male</label>
 
-<button @onclick="SaveInfo">@button</button>
-<h2>Student List</h2>
+      <InputRadio id="female" Value="GenderEnum.Female" />
+      <label for="female">Female</label>
+
+      <InputRadio id="other" Value="GenderEnum.Other" />
+      <label for="other">Other</label>
+    </InputRadioGroup>
+  </div>
+</div>
+
+<div class="form-input">
+  <label>Language:</label>
+  <div class="input-inline-group">
+    @foreach (var lang in languages)
+    {
+      <input type="checkbox"
+             checked="@newInfo.Languages.Contains(lang)"
+             @onchange="e => Language(lang, e)" />
+      <label>@lang</label>
+    }
+  </div>
+</div>
+
+<div class="form-input">
+        <label>DateTime:</label>
+        <input type="datetime-local" @bind="newInfo.DateTime" />
+    </div>
+    <div class="form-input">
+        <label>Amount:</label>
+        <input type="number" @bind="newInfo.Amount" />
+    </div>
+    @* <div class="form-input">
+    <label for="nameInput">File:</label>
+<InputFile OnChange="UploadFile" accept=".pdf,.doc,.docx,.txt" />
+</div> *@
+<br>
+<br>
+<button type="button" @onclick="SaveInfo">@button</button>
+
+
+</EditForm>
+<h2>User List</h2>
 <table>
     <thead>
         <tr>
@@ -59,9 +171,15 @@
             <th>MailID</th>
             <th>Degree</th>
             <th>Departments</th>
-              <th>Photo</th>
-              <th>DOB</th>
-              <th>Selected</th>
+            <th>Photo</th>
+            <th>DOB</th>
+            <th>Selected</th>
+            <th>Gender</th>
+            <th>Time</th>
+            <th>Language</th>
+            <th>DateTime</th>
+            @* <th>File</th> *@
+            <th>Amount</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -79,14 +197,33 @@
                     {
                         <img src="@personalInfo.Photo" alt="Uploaded Image" style="max-width: 300px; max-height: 300px;" />
                     }
-                    else
+                                else
                     {
                         <span>No Photo</span>
                     }
                 </td>
-                <td>@personalInfo.DOB.ToString("yyyy-MM-dd")</td>
+                <td>@personalInfo.DOB.ToString("dd/MM/yyyy")</td>
                 @* <td>@personalInfo.SelectedDepartments</td> *@
-                <td>@(personalInfo.SelectedDepartments != null ? string.Join(", ", personalInfo.SelectedDepartments) : "")</td>
+                <td>@(personalInfo.SelectedDepartments != null ? string.Join(", ", personalInfo.SelectedDepartments) : "")
+                </td>
+                <td>@personalInfo.Gender</td>
+                <td>@personalInfo.Time</td>
+               
+            <td>@(personalInfo.Languages?.Count > 0 ? string.Join(", ", personalInfo.Languages) : "No languages selected")</td>
+
+                <td>@personalInfo.DateTime.ToString("dd/MM/yyyy HH:mm")</td>
+
+@* <td>
+    @if (!string.IsNullOrEmpty(personalInfo.File))
+    {
+        <a href="@($"uploads/{personalInfo.File}")" target="_blank">@personalInfo.File</a>
+    }
+    else
+    {
+        <span>No File</span>
+    }
+</td> *@
+<td>@personalInfo.Amount</td>
 
                 <td>
                     <button @onclick="() => EditInfo(personalInfo)">Edit</button>
@@ -96,73 +233,136 @@
         }
     </tbody>
 </table>
+
 @code {
-   List<string> departments = new() { "HR", "Sales", "IT", "Finance" };
-  @* PersonalInfo newInfo = new PersonalInfo(); *@
-    void OnDepartmentsChanged(ChangeEventArgs e)
+    @*  *@
+
+      private string fileStatus;
+   private async Task UploadFile(InputFileChangeEventArgs e)
+{
+    var file = e.File;
+
+    if (file == null)
     {
-        var selectedValues = e.Value as string[];
-        if (selectedValues != null)
-        {
-            newInfo.SelectedDepartments = selectedValues;
-        }
-        else if (e.Value is not null)
-        {
-            newInfo.SelectedDepartments = new string[] { e.Value.ToString() };
-        }
-        else
-        {
-            newInfo.SelectedDepartments = Array.Empty<string>();
-        }
+        fileStatus = "No file selected.";
+        newInfo.File = null;  
+        return;
     }
-     private static int s_id = 1;
-    List<PersonalInfo> personalInfos = new();
+
+    if (file.Size > maxFileSize)
+    {
+        fileStatus = "File too large. Max 10 MB.";
+        return;
+    }
+
+    try
+    {
+        var uploadFolder = Path.Combine(env.WebRootPath, "uploads");
+        Directory.CreateDirectory(uploadFolder);
+
+        var filePath = Path.Combine(uploadFolder, file.Name);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.OpenReadStream(maxFileSize).CopyToAsync(stream);
+
+     
+        newInfo.File = file.Name;
+
+        fileStatus = $"File '{file.Name}' uploaded successfully!";
+    }
+    catch (Exception ex)
+    {
+        fileStatus = $"Upload failed: {ex.Message}";
+    }
+}
+  private List<string> languages = new() { "English", "Spanish", "French", "Hindi" };
+   private void Language(string lang, ChangeEventArgs e)
+{
+    bool isChecked = e.Value?.ToString().ToLower() == "true";
+
+    if (isChecked)
+    {
+        if (!newInfo.Languages.Contains(lang))
+            newInfo.Languages.Add(lang);
+    }
+    else
+    {
+        if (newInfo.Languages.Contains(lang))
+            newInfo.Languages.Remove(lang);
+    }
+}
+
+
+    List<string> departments = new() { "CSE", "ECE", "IT", "EEE" };
+
+    private static int s_id = 1;
+    List<PersonalInfo> personalInfos = new List<PersonalInfo>();
     List<string> Degrees = new List<string>
-        {
-            "Bachelor of Degree","Master of Degree", "Engineering"
-        };
-    PersonalInfo newInfo = new();
-    
+{
+"Bachelor of Degree","Master of Degree", "Engineering"
+};
+    PersonalInfo newInfo = new PersonalInfo{DOB = DateTime.Today, Languages = new List<string>()};
+
     string button = "Add";
     bool isEdit = false;
     PersonalInfo selectedInfo;
 
- public const long maxFileSize = 1024 * 1024 * 5; 
-
-public async Task OnInputFileChange(InputFileChangeEventArgs e)
+    public const long maxFileSize = 1024 * 1024 * 5;
+@* public async Task PhotoUpload(InputFileChangeEventArgs e)
 {
     var file = e.File;
     if (file != null)
     {
         using var stream = file.OpenReadStream(maxFileSize);
-        var buffer = new byte[file.Size];
-        await stream.ReadAsync(buffer);
+        var fileSize = new byte[file.Size];
+        await stream.ReadAsync(fileSize);
 
-        newInfo.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        newInfo.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(fileSize)}";
+        newInfo.PhotoFileName = file.Name;  // Save file name here
     }
-}
+} *@
+
+    public async Task PhotoUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var stream = file.OpenReadStream(maxFileSize);
+            var fileSize = new byte[file.Size];
+            await stream.ReadAsync(fileSize);
+
+            newInfo.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(fileSize)}";
+        }
+    }
     @* Edit the data *@
     public void EditInfo(PersonalInfo personal)
     {
         isEdit = true;
         selectedInfo = personal;
-       
-            newInfo.ID = personal.ID;
-            newInfo.Name = personal.Name;
-            newInfo.Mobile = personal.Mobile;
-            newInfo.MailID = personal.MailID;
-            newInfo.Photo = personal.Photo;
-            newInfo.Degree = personal.Degree;
-            newInfo.Department = personal.Department;
-            newInfo.DOB=personal.DOB;
-            newInfo.SelectedDepartments=personal.SelectedDepartments;
-        
-        
+
+        newInfo.ID = personal.ID;
+        newInfo.Name = personal.Name;
+        newInfo.Mobile = personal.Mobile;
+        newInfo.MailID = personal.MailID;
+        newInfo.Photo = personal.Photo;
+        newInfo.Degree = personal.Degree;
+        newInfo.Department = personal.Department;
+        newInfo.DOB = personal.DOB;
+        newInfo.SelectedDepartments = personal.SelectedDepartments;
+        newInfo.Time = personal.Time;
+        newInfo.Languages = personal.Languages;
+        newInfo.DateTime = personal.DateTime;
+        newInfo.File = personal.File;
+        newInfo.Gender=personal.Gender;
+        newInfo.Amount=personal.Amount;
+
+
         button = "Update";
     }
     @* Create the form *@
-    
-    public void SaveInfo()
+
+    private async Task SaveInfo()
+
     {
         if (isEdit)
         {
@@ -170,18 +370,24 @@ public async Task OnInputFileChange(InputFileChangeEventArgs e)
             selectedInfo.Name = newInfo.Name;
             selectedInfo.Mobile = newInfo.Mobile;
             selectedInfo.MailID = newInfo.MailID;
-       selectedInfo.Photo= newInfo.Photo; 
-       selectedInfo.Degree=newInfo.Degree;
-       selectedInfo.Department = newInfo.Department;
-       selectedInfo.DOB = newInfo.DOB;
-        selectedInfo.SelectedDepartments = newInfo.SelectedDepartments;
+            selectedInfo.Photo = newInfo.Photo;
+            selectedInfo.Degree = newInfo.Degree;
+            selectedInfo.Department = newInfo.Department;
+            selectedInfo.DOB = newInfo.DOB;
+            selectedInfo.SelectedDepartments = newInfo.SelectedDepartments;
+            selectedInfo.Time = newInfo.Time;
+           selectedInfo.Languages = newInfo.Languages;
+selectedInfo.DateTime = newInfo.DateTime;
+selectedInfo.File = newInfo.File;
+selectedInfo.Gender = newInfo.Gender;
+selectedInfo.Amount=newInfo.Amount;
 
             isEdit = false;
-            button = "Add"; 
+            button = "Add";
         }
         else
         {
-           newInfo.ID = s_id++;
+            newInfo.ID = s_id++;
             personalInfos.Add(new PersonalInfo
             {
                 ID = newInfo.ID,
@@ -189,18 +395,23 @@ public async Task OnInputFileChange(InputFileChangeEventArgs e)
                 Mobile = newInfo.Mobile,
                 MailID = newInfo.MailID,
                 Photo = newInfo.Photo,
-                Degree=newInfo.Degree,
+                Degree = newInfo.Degree,
                 Department = newInfo.Department,
                 DOB = newInfo.DOB,
-                SelectedDepartments=newInfo.SelectedDepartments
+                SelectedDepartments = newInfo.SelectedDepartments,
+                Time = newInfo.Time,
+                Languages = newInfo.Languages,
+                DateTime = newInfo.DateTime,File=newInfo.File,Gender=newInfo.Gender,Amount=newInfo.Amount
 
             });
         }
-        newInfo = new PersonalInfo();
-    
+         @* return Task.CompletedTask; *@
+       newInfo = new PersonalInfo { DOB = DateTime.Today, Languages = new List<string>() };
+    await InvokeAsync(StateHasChanged);
+
     }
     @* Delete the data *@
-   public void DeleteInfo(PersonalInfo id)
+    public void DeleteInfo(PersonalInfo id)
     {
 
         personalInfos.Remove(id);

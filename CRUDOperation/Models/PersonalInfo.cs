@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CRUDOperation.Models
@@ -15,14 +16,29 @@ namespace CRUDOperation.Models
         public string Photo { get; set; }
         public string Degree { get; set; }
         public string Department { get; set; }
-        public DateTime DOB { get; set; }
+        public Double Amount { get; set; }
+        
+        
+        public DateTime DOB { get; set; } = System.DateTime.Today;
+
+
         public string[] SelectedDepartments { get; set; } = Array.Empty<string>();
+        public enum GenderEnum
+        {
+            Male,
+            Female,
+            Other
+        }
+
+        public GenderEnum Gender { get; set; }
+
+        public string Time { get; set; }
+        public List<string> Languages { get; set; } = new();
+        public DateTime DateTime { get; set; } = System.DateTime.Today;
+        public string File { get; set; }
 
 
-        // public PersonalInfo()
-        // {
-        //     ID = s_id++;
-        // }
+
 
 
 
