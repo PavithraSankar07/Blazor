@@ -1,0 +1,74 @@
+/* Auth container */
+#auth-form,
+.login-form,
+.signup-form {
+  background-color: aliceblue;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 400px;
+  margin: 2rem auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+/* Layout for form fields  */
+.login-form,
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+/* Input fields  */
+.login-form input,
+.signup-form input,
+input {
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+ /* Buttons  */
+button {
+  padding: 10px;
+  font-size: 1rem;
+  background-color: #004aad;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #003580;
+}
+
+ /* Toggle buttons (Login/Signup switch)  */
+.toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.toggle-buttons button {
+  background-color: #666;
+  color: white;
+}
+
+.toggle-buttons button:hover {
+  background-color: #444;
+}
+
+.toggle-buttons button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+ /* Headings  */
+.login-form h2,
+.signup-form h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}

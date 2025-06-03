@@ -1,0 +1,96 @@
+@page "/"
+@using MedicalStore.Models
+
+<div class="toggle-buttons">
+    <button @onclick="ShowLogin" disabled="@showLogin">Login</button>
+    <button @onclick="ShowSignup" disabled="@(!showLogin)">Sign Up</button>
+</div>
+@* Now need to add the css but how *@
+@* What purpose of dataannotationsvalidator, validationSummary, Model, EditForm *@
+@* Its is necessary or not needed *@
+@* Need to completed the module based in time assigned *@
+@if (showLogin)
+{
+    <EditForm Model="@userInfo" OnValidSubmit="Login">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="login-form" id="auth-form">
+            <h2>Login</h2>
+            <InputText @bind-Value="userInfo.Email" placeholder="Email" />
+            <InputText @bind-Value="userInfo.Password" type="password" placeholder="Password" />
+            <button type="submit">Login</button>
+        </div>
+    </EditForm>
+}
+else
+{
+    <EditForm Model="@userInfo" OnValidSubmit="Signup">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="signup-form" id="auth-form">
+            <h2>Sign Up</h2>
+            <InputText @bind-Value="userInfo.Name" placeholder="Name" />
+            <InputText @bind-Value="userInfo.Email" placeholder="Email" />
+            <InputText @bind-Value="userInfo.MobileNumber" placeholder="Mobile Number" />
+            <InputText @bind-Value="userInfo.Password" type="password" placeholder="Password" />
+            <button type="submit">Sign Up</button>
+        </div>
+    </EditForm>
+}
+
+<p>@loginMessage</p>
+
+@code {
+    public UserInfo userInfo = new();
+    public string loginMessage;
+    private bool showLogin = false;
+
+    private List<UserInfo> users = DefaultData.GetDefaultUsers();
+
+    private void ShowLogin() => showLogin = true;
+    private void ShowSignup() => showLogin = false;
+private bool isLoggedIn = false;
+
+ private void Login()
+{
+    var existingUser = users.FirstOrDefault(u =>
+        u.Email == userInfo.Email && u.Password == userInfo.Password);
+
+    if (existingUser != null)
+    {
+        loginMessage = "Login Successful";
+        isLoggedIn = true;
+        @* Navigation.NavigateTo("/home"); *@
+    }
+    else
+    {
+        loginMessage = "Login Failed: Invalid credentials";
+        isLoggedIn = false;
+    }
+}
+
+
+    private void Signup()
+    {
+        var existingUser = users.FirstOrDefault(u => u.Email == userInfo.Email);
+        if (existingUser != null)
+        {
+            loginMessage = "Signup Failed: Email already exists";
+        }
+        else
+        {
+            users.Add(new UserInfo
+            {
+                Name = userInfo.Name,
+                Email = userInfo.Email,
+                Password = userInfo.Password,
+                MobileNumber = userInfo.MobileNumber
+            });
+
+            loginMessage = "Signup Successful. You can now log in.";
+            showLogin = true;
+        }
+    }
+}
