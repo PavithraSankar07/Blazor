@@ -1,54 +1,110 @@
 @page "/"
 @using System.Net.Http.Json
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using static CRUDOperation.Models.PersonalInfo
 @inject HttpClient Http
+@inject IWebHostEnvironment env
 
 <h1>User List</h1>
-
-<div class="form-input">
-    <input type="text" @bind="newInfo.Name" placeholder="Name">
-</div>
-<div class="form-input">
-    <input type="text" @bind="newInfo.MailID" placeholder="MailID">
-</div>
-<div class="form-input">
-    <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
-</div>
-@* <div class="form-input">
-    <input type="text" @bind="newInfo.ID" placeholder="ID">
-</div> *@
-<div class="form-input">
-    <InputFile OnChange="OnInputFileChange" />
-</div>
-<div class="form-input">
-    <InputSelect @bind-Value="newInfo.Degree" TValue="string">
-        <option value="">Select Degree</option>
-        @foreach (var dept in Degrees)
-        {
-            <option value="@dept">@dept</option>
-        }
-    </InputSelect>
-</div>
-@if (!string.IsNullOrEmpty(newInfo.Degree))
-{
+<EditForm Model="newInfo" OnValidSubmit="SaveInfo">
     <div class="form-input">
-        <textarea @bind="newInfo.Department" placeholder="Enter your Department here"></textarea>
+        <label for="nameInput">Name:</label>
+        <input type="text" @bind="newInfo.Name" placeholder="Name">
+    </div>
+    <div class="form-input">
+        <label for="nameInput">MailID:</label>
+        <input type="text" @bind="newInfo.MailID" placeholder="MailID">
+    </div>
+    <div class="form-input">
+        <label for="nameInput">MobileNumber:</label>
+        <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
+    </div>
+    <div class="form-input">
+        <label>Photo:</label>
+        <InputFile OnChange="PhotoUpload" />
+
+        @if (!string.IsNullOrEmpty(newInfo.Photo))
+        {
+            <div>
+                <img src="@newInfo.Photo" alt="Uploaded Photo" style="max-width: 150px; max-height: 150px;" />
+            </div>
+        }
 
     </div>
-}
-<div class="form-input">
-    <InputDate @bind-Value="newInfo.DOB" />
-
-</div>
-<select multiple @bind="newInfo.SelectedDepartments">
-    @foreach (var dept in departments)
+    <div class="form-input">
+        <label>Degree:</label>
+        <InputSelect @bind-Value="newInfo.Degree" TValue="string">
+            <option value="">Select Degree</option>
+            @foreach (var dept in Degrees)
+            {
+                <option value="@dept">@dept</option>
+            }
+        </InputSelect>
+    </div>
+    @if (!string.IsNullOrEmpty(newInfo.Degree))
     {
-        <option value="@dept">@dept</option>
+        <div class="form-input">
+            <textarea @bind="newInfo.Department" placeholder="Enter your Department here"></textarea>
+
+        </div>
     }
-</select>
+    <div class="form-input">
+        <label for="nameInput">DOB:</label>
+        <InputDate @bind-Value="newInfo.DOB" />
 
-<br>
-<button @onclick="SaveInfo">@button</button>
 
+    </div>
+    <div class="form-input">
+        <label for="nameInput">Department:</label>
+        <select multiple @bind="newInfo.SelectedDepartments">
+            @foreach (var dept in departments)
+            {
+                <option value="@dept">@dept</option>
+            }
+        </select>
+    </div>
+    <div class="form-input">
+        <label for="nameInput">Time:</label>
+        <InputText @bind-Value="newInfo.Time" type="time"></InputText>
+    </div>
+    <div class="form-input">
+        <label>Gender:</label>
+        <div class="input-inline-group">
+            <InputRadioGroup @bind-Value="newInfo.Gender">
+                <InputRadio id="male" Value="GenderEnum.Male" />
+                <label for="male">Male</label>
+
+                <InputRadio id="female" Value="GenderEnum.Female" />
+                <label for="female">Female</label>
+
+                <InputRadio id="other" Value="GenderEnum.Other" />
+                <label for="other">Other</label>
+            </InputRadioGroup>
+        </div>
+    </div>
+    <div class="form-input">
+        <label>Language:</label>
+        <div class="input-inline-group">
+            @foreach (var lang in languages)
+            {
+                <input type="checkbox" checked="@newInfo.Languages.Contains(lang)" @onchange="e => Language(lang, e)" />
+                <label>@lang</label>
+            }
+        </div>
+    </div>
+    <div class="form-input">
+        <label>DateTime:</label>
+        <input type="datetime-local" @bind="newInfo.DateTime" />
+    </div>
+    <div class="form-input">
+        <label>Amount:</label>
+        <input type="number" @bind="newInfo.Amount" />
+    </div>
+    <br>
+    <InputFile OnChange="HandleFileSelected" />
+    <button type="submit">@button</button>
+</EditForm>
 <hr />
 @* <h1>Data</h1> *@
 <table>
@@ -63,6 +119,12 @@
             <th>Photo</th>
             <th>DOB</th>
             <th>Selected</th>
+            <th>Gender</th>
+            <th>Time</th>
+            <th>Language</th>
+            <th>DateTime</th>
+            <th>File</th>
+            <th>Amount</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -84,12 +146,25 @@
                     {
                         <span>No Photo</span>
                     }
-
-
                 </td>
-                <td>@info.DOB.ToString("yyyy-MM-dd")</td>
+                <td>@info.DOB.ToString("dd/MM/yyyy")</td>
+
                 <td>@(info.SelectedDepartments != null ? string.Join(", ", info.SelectedDepartments) : "")
                 </td>
+                <td>@info.Gender</td>
+                <td>@info.Time</td>
+
+                <td>@(info.Languages?.Count > 0 ? string.Join(", ", info.Languages) : "No languages selected")</td>
+
+                <td>@info.DateTime.ToString("dd/MM/yyyy HH:mm")</td>
+
+                @if (!string.IsNullOrEmpty(filePreviewUrl))
+                {
+                    <a href="@filePreviewUrl" download="@uploadedFile.Name">Download @uploadedFile.Name</a>
+                }
+
+                <td>@info.Amount</td>
+
                 <td>
                     <button @onclick="() => EditInfo(info)">Edit</button>
                     <button @onclick="() => DeleteInfo(info)">Delete</button>
@@ -100,13 +175,54 @@
 </table>
 
 @code {
+    private IBrowserFile uploadedFile;
+    private string filePreviewUrl;
+
+  private async Task HandleFileSelected(InputFileChangeEventArgs e)
+{
+    uploadedFile = e.File;
+    using var stream = uploadedFile.OpenReadStream(maxFileSize);
+    var buffer = new byte[uploadedFile.Size];
+    await stream.ReadAsync(buffer);
+    newInfo.File = $"data:{uploadedFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+    filePreviewUrl = newInfo.File;
+}
+
+    public const long maxFileSize = 1024 * 1024 * 5;
+    public async Task PhotoUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var stream = file.OpenReadStream(maxFileSize);
+            var fileSize = new byte[file.Size];
+            await stream.ReadAsync(fileSize);
+
+            newInfo.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(fileSize)}";
+        }
+    }
+    private List<string> languages = new() { "English", "Spanish", "French", "Hindi" };
+    private void Language(string lang, ChangeEventArgs e)
+    {
+        bool isChecked = e.Value?.ToString().ToLower() == "true";
+
+        if (isChecked)
+        {
+            if (!newInfo.Languages.Contains(lang))
+                newInfo.Languages.Add(lang);
+        }
+        else
+        {
+            if (newInfo.Languages.Contains(lang))
+                newInfo.Languages.Remove(lang);
+        }
+    }
     List<string> departments = new() { "HR", "Sales", "IT", "Finance", "Marketing" };
     List<string> Degrees = new List<string>
 {
 "Bachelor of Degree","Master of Degree", "Engineering"
 };
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
-
     {
         var file = e.File;
         if (file != null)
@@ -125,30 +241,18 @@
     PersonalInfo selectedInfo;
     string button = "Add";
 
-    protected override async Task OnInitializedAsync()
+    @* protected override async Task OnInitializedAsync()
     {
         await LoadData();
-    }
+    } *@
 
     async Task LoadData()
     {
         personalInfos = await Http.GetFromJsonAsync<List<PersonalInfo>>("api/Personal");
         StateHasChanged();
     }
-
-
-
-
     async Task SaveInfo()
     {
-        Console.WriteLine("Sending data to API:");
-        Console.WriteLine($"ID: {newInfo.ID}");
-        Console.WriteLine($"Name: {newInfo.Name}");
-        Console.WriteLine($"Mobile: {newInfo.Mobile}");
-        Console.WriteLine($"MailID: {newInfo.MailID}");
-        Console.WriteLine($"Department: {newInfo.Department}");
-        @* Console.WriteLine($"Photo: {(newInfo.Photo?.Substring(0, 30) + "...")}"); *@
-
         if (isEdit)
         {
             var putResponse = await Http.PutAsJsonAsync($"api/Personal/{selectedInfo.ID}", newInfo);
@@ -157,9 +261,7 @@
         }
         else
         {
-            @* newInfo.ID = 0; // clear ID *@
             var postResponse = await Http.PostAsJsonAsync("api/Personal", newInfo);
-
             if (!postResponse.IsSuccessStatusCode)
             {
                 var errorText = await postResponse.Content.ReadAsStringAsync();
@@ -171,7 +273,6 @@
         await LoadData();
         newInfo = new PersonalInfo();
     }
-
     async Task DeleteInfo(PersonalInfo info)
     {
         await Http.DeleteAsync($"api/Personal/{info.ID}");
@@ -182,18 +283,24 @@
     {
         isEdit = true;
         selectedInfo = info;
-      newInfo = new PersonalInfo
-{
-    ID = selectedInfo.ID,
-    Name = selectedInfo.Name,
-    Mobile = selectedInfo.Mobile,
-    MailID = selectedInfo.MailID,
-    Photo = selectedInfo.Photo,
-    Degree = selectedInfo.Degree,
-    Department = selectedInfo.Department,
-    DOB = selectedInfo.DOB,
-    SelectedDepartments = selectedInfo.SelectedDepartments != null ? selectedInfo.SelectedDepartments.ToArray() : Array.Empty<string>()
-};
+        newInfo = new PersonalInfo
+        {
+            ID = selectedInfo.ID,
+            Name = selectedInfo.Name,
+            Mobile = selectedInfo.Mobile,
+            MailID = selectedInfo.MailID,
+            Photo = selectedInfo.Photo,
+            Degree = selectedInfo.Degree,
+            Department = selectedInfo.Department,
+            DOB = selectedInfo.DOB,
+            Time = selectedInfo.Time,
+            Languages = selectedInfo.Languages,
+            DateTime = selectedInfo.DateTime,
+            Amount = selectedInfo.Amount,
+            Gender = selectedInfo.Gender,File=selectedInfo.File,
+            SelectedDepartments = selectedInfo.SelectedDepartments != null ? selectedInfo.SelectedDepartments.ToArray() :
+        Array.Empty<string>()
+        };
 
         button = "Update";
     }

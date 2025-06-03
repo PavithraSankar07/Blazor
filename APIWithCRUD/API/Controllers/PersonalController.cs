@@ -21,28 +21,21 @@ namespace API.Controllers
         {
             return Ok(personalInfos);
         }
-      
+// add the data
         [HttpPost]
         public ActionResult<PersonalInfo> Post([FromBody] PersonalInfo info)
         {
-            if (!ModelState.IsValid)
-            {
-                Console.WriteLine("Model validation failed.");
-                foreach (var error in ModelState)
-                {
-                    Console.WriteLine($"{error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
-                }
-                return BadRequest(ModelState);
-            }
+
 
             info.ID = s_id++;
             personalInfos.Add(info);
             Console.WriteLine($"Added: {info.Name} with ID {info.ID}");
 
-            return CreatedAtAction(nameof(GetById), new { id = info.ID }, info);
+           
+            return Ok(info);
         }
 
-
+// fetch the data
 
         [HttpGet("{id}")]
         public ActionResult<PersonalInfo> GetById(int id)
@@ -51,27 +44,49 @@ namespace API.Controllers
             if (info == null) return NotFound();
             return Ok(info);
         }
+        // edit the data
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] PersonalInfo updatedInfo)
+        public IActionResult Edit(int id, [FromBody] PersonalInfo updatedInfo)
         {
             var info = personalInfos.FirstOrDefault(x => x.ID == id);
-            if (info == null) return NotFound();
+            if (info.Equals(null))
+            {
+                return NotFound();
+            }
 
+            
             info.Name = updatedInfo.Name;
-            info.MailID = updatedInfo.MailID;
             info.Mobile = updatedInfo.Mobile;
-            info.Department = updatedInfo.Department;
+            info.MailID = updatedInfo.MailID;
             info.Photo = updatedInfo.Photo;
+            info.Degree = updatedInfo.Degree;
+            info.Department = updatedInfo.Department;
+            info.DOB = updatedInfo.DOB;
+            info.SelectedDepartments = updatedInfo.SelectedDepartments;
+            info.Time = updatedInfo.Time;
+            info.Languages = updatedInfo.Languages;
+            info.DateTime = updatedInfo.DateTime;
+            info.Gender = updatedInfo.Gender;
+            info.Amount = updatedInfo.Amount;
             return NoContent();
         }
+
+        // Delete the data
+
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var info = personalInfos.FirstOrDefault(x => x.ID == id);
-            if (info == null) return NotFound();
 
+
+            var info = personalInfos.Find(x => x.ID.Equals(id));
+            if (info.Equals(null))
+            {
+                return NotFound();
+            }
             personalInfos.Remove(info);
             return NoContent();
+
+
         }
     }
 }
