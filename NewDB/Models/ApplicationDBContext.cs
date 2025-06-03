@@ -11,8 +11,16 @@ namespace NewDB.Models
     {
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
         {
-
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+ 
         }
-        public DbSet<StudentInfo> studenttable{ get; set; }
+        public DbSet<StudentInfo> studenttable { get; set; }
+        // protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // {
+        //     modelBuilder.Entity<StudentInfo>()
+        //         .Property(s => s.Gender)
+        //         .HasConversion<string>(); // Store enum as string
+        // }
+
     }
 }

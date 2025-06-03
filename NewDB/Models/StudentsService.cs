@@ -20,25 +20,28 @@ namespace NewDB.Models
         {
             return _DbContext.studenttable.OrderBy(s => s.ID).ToList();
         }
-
-        public bool InsertRec(StudentInfo studentInfo)
+        public bool Add(StudentInfo studentInfo)
         {
             _DbContext.studenttable.Add(studentInfo);
             _DbContext.SaveChanges();
             return true;
         }
-        public void EditRec(int stdid)
+        // public void EditRec(int stdid)
+        // {
+        //     StudentInfo studentInfo = new StudentInfo();
+        //     _DbContext.studenttable.FirstOrDefault(u => u.ID.Equals(stdid));
+        // }
+        public void EditRec(StudentInfo updatedInfo)
         {
-            StudentInfo studentInfo = new StudentInfo();
-            _DbContext.studenttable.FirstOrDefault(u => u.ID.Equals(stdid));
+            // StudentInfo studentInfo = _DbContext.studenttable.Find(u => u.ID.Equals(updatedInfo.ID));
+            // if (!studentInfo.Equals(null))
+            // {
+
+            //     _DbContext.SaveChanges();
+            // }
+            _DbContext.studenttable.Update(updatedInfo);
+            _DbContext.SaveChanges();
         }
-//    public bool UpdateRec(StudentInfo studentInfo)
-// {
-//     _DbContext.SaveChanges(); // already tracked entity
-//     return true;
-// }
-
-
         public bool UpdateRec(StudentInfo studentInfo)
         {
             var Stdupdate = _DbContext.studenttable.FirstOrDefault(u => u.ID.Equals(studentInfo.ID));
@@ -50,6 +53,10 @@ namespace NewDB.Models
                 Stdupdate.MailID = studentInfo.MailID;
                 Stdupdate.Photo = studentInfo.Photo;
                 Stdupdate.Department = studentInfo.Department;
+                Stdupdate.Time = studentInfo.Time;
+                Stdupdate.DateTime = studentInfo.DateTime;
+                Stdupdate.Languages = studentInfo.Languages;
+                Stdupdate.Amount = studentInfo.Amount;
                 _DbContext.SaveChanges();
             }
             else
