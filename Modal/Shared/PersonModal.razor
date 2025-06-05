@@ -1,0 +1,68 @@
+@using Modal.Model
+@code {
+    [Parameter] public Person Person { get; set; }
+    [Parameter] public EventCallback<Person> OnValidSubmit { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public bool Show { get; set; }
+
+    private Person model = new();
+    protected override void OnParametersSet()
+    {
+        if (Person != null)
+        {
+            model = new Person
+            {
+                Id = Person.Id,
+                Name = Person.Name,
+                Email = Person.Email
+            };
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        OnValidSubmit.InvokeAsync(model);
+    }
+}
+
+@if (Show)
+{
+    @* Background become dark *@
+    <div class="background">
+        @* modal box *@
+        <div class="fullmodal">
+            @* For heading of add/edit *@
+            <div class="modal-header">
+                <h3>@((model.Id == 0) ? "Add Person" : "Edit Person")</h3>
+                <button class="close-btn" @onclick="OnCancel">X</button>
+            </div>
+            <EditForm Model="@model" OnValidSubmit="@HandleValidSubmit">
+                <div class="modal-body">
+                    <label>Name</label>
+                    <InputText class="input-text" @bind-Value="model.Name" />
+                    <label>Email</label>
+                    <InputText class="input-text" @bind-Value="model.Email" />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" >Save</button>
+                    <button type="button"  @onclick="OnCancel">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<style>
+  
+
+    .fullmodal {
+        background: white;
+        width: 400px;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    
+   
+</style>

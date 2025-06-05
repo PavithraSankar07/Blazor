@@ -1,0 +1,82 @@
+﻿@page "/"
+@using System.Linq
+@using Modal.Model
+
+<h3>People List</h3>
+
+<button  @onclick="AddPerson">Add Person</button>
+
+<table >
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var person in people)
+        {
+            <tr>
+                <td>@person.Name</td>
+                <td>@person.Email</td>
+                <td>
+                    <button  @onclick="@(() => EditPerson(person))">Edit</button>
+                    <button  @onclick="@(() => DeletePerson(person))">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<PersonModal Show="@showModal"
+             Person="@selectedPerson"
+             OnValidSubmit="HandleSubmit"
+             OnCancel="CloseModal" />
+
+@code {
+    private List<Person> people = new();
+    private bool showModal = false;
+    private Person selectedPerson = new();
+
+    private void AddPerson()
+    {
+        selectedPerson = new Person();
+        showModal = true;
+    }
+
+    private void EditPerson(Person person)
+    {
+        selectedPerson = person;
+        showModal = true;
+    }
+
+    private void DeletePerson(Person person)
+    {
+        people.Remove(person);
+    }
+
+    private void HandleSubmit(Person person)
+    {
+        if (person.Id == 0)
+        {
+            person.Id = people.Count > 0 ? people.Max(p => p.Id) + 1 : 1;
+            people.Add(person);
+        }
+        else
+        {
+            var index = people.FindIndex(p => p.Id == person.Id);
+            if (index != -1)
+            {
+                people[index] = person;
+            }
+        }
+
+        showModal = false;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+}
