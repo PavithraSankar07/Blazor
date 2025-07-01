@@ -2,34 +2,32 @@
 @using System.IO
 @using Microsoft.AspNetCore.Hosting
 @using static CRUDOperation.Models.PersonalInfo
-
+@using System.ComponentModel.DataAnnotations
+@inject IJSRuntime JSRuntime
 @inject IWebHostEnvironment env
 
-<EditForm Model="newInfo" OnSubmit="SaveInfo" >
-
+<EditForm EditContext="editContext" OnValidSubmit="SaveInfo">
+    <DataAnnotationsValidator/>
+    <div class="form-matrix">
+<div class="row1">
 <div class="form-input">
      <label for="nameInput">Name:</label>
-    <input type="text" @bind="newInfo.Name" placeholder="Name">
+    <InputText  @bind-Value="newInfo.Name" placeholder="Name" onblur="@(()=>validatefield(nameof(newInfo.Name)))"/>
+    <ValidationMessage For="@(()=>newInfo.Name)"></ValidationMessage>
 </div>
 <div class="form-input">
     <label for="nameInput">MailID:</label>
-    <input type="text" @bind="newInfo.MailID" placeholder="MailID">
+    <InputText @bind-Value="newInfo.MailID" placeholder="MailID" onblur="@(()=>validatefield(nameof(newInfo.MailID)))"/>
+<ValidationMessage For="@(()=>newInfo.MailID)"></ValidationMessage>
 </div>
 <div class="form-input">
     <label for="nameInput">MobileNumber:</label>
-    <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
+    <InputNumber @bind-Value="newInfo.Mobile" placeholder="MobileNumber"/>
+    <ValidationMessage For="@(()=>newInfo.Mobile)"></ValidationMessage>
 </div>
-@* <div class="form-input">
-    <label for="photo">Photo:</label>
-    <InputFile OnChange="PhotoUpload" />
-    @if (!string.IsNullOrEmpty(newInfo.Photo))
-    {
-        <img src="@newInfo.Photo" alt="Photo" style="max-width: 100px; max-height: 100px;" />
-    }
-</div> *@
 <div class="form-input">
     <label>Photo:</label>
-    <InputFile OnChange="PhotoUpload" />
+    <InputFile OnChange="PhotoUpload" onblur="@(()=>validatefield(nameof(newInfo.Photo)))" />
     
     @if (!string.IsNullOrEmpty(newInfo.Photo))
     {
@@ -37,15 +35,27 @@
             <img src="@newInfo.Photo" alt="Uploaded Photo" style="max-width: 150px; max-height: 150px;" />
         </div>
     }
-    @if (!string.IsNullOrEmpty(newInfo.Photo))
-    {
-        @* <div>
-            <small>File Name: @newInfo.Photo</small>
-        </div> *@
-    }
+    <ValidationMessage For="@(()=>newInfo.Photo)"></ValidationMessage>
+</div>
+<div class="form-input">
+  <label>Gender:</label>
+  <InputRadioGroup @bind-Value="newInfo.Gender" class="gender-group">
+    <div class="gender">
+      <InputRadio Value="GenderEnum.Male" /> <span>Male</span>
+    </div>
+    <div class="gender1">
+      <InputRadio Value="GenderEnum.Female" /> <span>Female</span>
+    </div>
+    <div class="gender2">
+      <InputRadio Value="GenderEnum.Other" /> <span>Other</span>
+    </div>
+  </InputRadioGroup>
+  <ValidationMessage For="@(()=>newInfo.Gender)"></ValidationMessage>
+</div>
 </div>
 
-<div class="form-input">
+<div class="row2">
+@* <div class="form-input">
     <label for="nameInput">Degree:</label>
     <InputSelect @bind-Value="newInfo.Degree">
         <option value="">Select Degree</option>
@@ -54,131 +64,97 @@
             <option value="@dept">@dept</option>
         }
     </InputSelect>
-</div>
-@if (!string.IsNullOrEmpty(newInfo.Degree))
+    <ValidationMessage For="@(()=>newInfo.Degree)"></ValidationMessage>
+</div> *@
+@* @if (!string.IsNullOrEmpty(newInfo.Degree))
 {
     <div class="form-input">
         <textarea @bind="newInfo.Department" placeholder="Enter your Department here"></textarea>
-
     </div>
-}
+} *@
 <div class="form-input">
     <label for="nameInput">DOB:</label>
    <InputDate @bind-Value="newInfo.DOB"/>
+   <ValidationMessage For="@(()=>newInfo.DOB)"></ValidationMessage>
+</div>
 
 
-</div>
-<div class="form-input">
-    <label for="nameInput">Department:</label>
-    <select multiple @bind="newInfo.SelectedDepartments">
-        @foreach (var dept in departments)
-        {
-            <option value="@dept">@dept</option>
-        }
-    </select>
-</div>
-@* <div class="form-input">
-    <div>
-    <label for="nameInput">Gender:</label>
-  <InputRadioGroup @bind-Value="newInfo.Gender">
-    <div class="input-group">
-      <InputRadio id="male" Value="GenderEnum.Male" />
-      <label for="male">Male</label>
-    </div>
-    <div class="input-group">
-      <InputRadio id="female" Value="GenderEnum.Female" />
-      <label for="female">Female</label>
-    </div>
-    <div class="input-group">
-      <InputRadio id="other" Value="GenderEnum.Other" />
-      <label for="other">Other</label>
-    </div>
-  </InputRadioGroup>
-  </div>
-</div> *@
-<div class="form-input">
-<label for="nameInput">Time:</label>
-<InputText @bind-Value="newInfo.Time" type="time"></InputText>
-</div>
-@* <div  class="form-input">
-    <div>
-    <label for="nameInput">Language:</label>
-  @foreach (var lang in languages)
-  {
-    <div class="input-group">
-      <input type="checkbox" 
-             checked="@newInfo.Languages.Contains(lang)" 
-             @onchange="e => OnLanguageChanged(lang, e)" />
-      <label>@lang</label>
-    </div>
-  }
-  </div>
-</div> *@
-<div class="form-input">
-  <label>Gender:</label>
-  <div class="input-inline-group">
-    <InputRadioGroup @bind-Value="newInfo.Gender">
-      <InputRadio id="male" Value="GenderEnum.Male" />
-      <label for="male">Male</label>
-
-      <InputRadio id="female" Value="GenderEnum.Female" />
-      <label for="female">Female</label>
-
-      <InputRadio id="other" Value="GenderEnum.Other" />
-      <label for="other">Other</label>
-    </InputRadioGroup>
-  </div>
-</div>
 
 <div class="form-input">
   <label>Language:</label>
-  <div class="input-inline-group">
+  <div class="language-group">
     @foreach (var lang in languages)
-    {
-      <input type="checkbox"
-             checked="@newInfo.Languages.Contains(lang)"
-             @onchange="e => Language(lang, e)" />
-      <label>@lang</label>
-    }
+{
+    <input 
+        type="checkbox" 
+        checked="@newInfo.Languages.Contains(lang)" 
+        @onchange="(e) => OnLanguageChanged(lang, ((ChangeEventArgs)e).Value)" />
+    <label>@lang</label>
+}
   </div>
+  <ValidationMessage For="@(()=>newInfo.Languages)"></ValidationMessage>
+</div>
+<div class="form-input">
+    <label for="nameInput">Department:</label>
+    <InputSelect multiple @bind="newInfo.SelectedDepartments" TValue="List<string>">
+        @foreach (var dept in departments)
+   
+{
+        <option value="@dept">@dept</option>
+        }
+    </InputSelect>
+</div>
 </div>
 
+<ValidationMessage For="@(()=>newInfo.Department)"></ValidationMessage>
+<div class="row3">
 <div class="form-input">
-        <label>DateTime:</label>
-        <input type="datetime-local" @bind="newInfo.DateTime" />
+<label for="nameInput">Check-In Time:</label>
+<InputText @bind-Value="newInfo.Time" type="time"></InputText>
+</div>
+<ValidationMessage For="@(()=>newInfo.Time)"></ValidationMessage>
+<div class="form-input">
+        <label>Joining Date:</label>
+        <InputDate @bind-Value="newInfo.DateTime" />
     </div>
+<ValidationMessage For="@(()=>newInfo.DateTime)"></ValidationMessage>
     <div class="form-input">
         <label>Amount:</label>
-        <input type="number" @bind="newInfo.Amount" />
+        <InputNumber @bind-Value="newInfo.Amount" />
     </div>
-    @* <div class="form-input">
-    <label for="nameInput">File:</label>
+    <ValidationMessage For="@(()=>newInfo.Amount)"></ValidationMessage>
+    <div class="form-input">
+    <label for="nameInput">Resume:</label>
 <InputFile OnChange="UploadFile" accept=".pdf,.doc,.docx,.txt" />
-</div> *@
+</div>
+<ValidationMessage For="@(()=>newInfo.File)"></ValidationMessage>
+</div>
+</div>
 <br>
 <br>
-<button type="button" @onclick="SaveInfo">@button</button>
-
+<button type="submit">@button</button>
+<p style="color: @styleColor">@displaymessage</p>
 
 </EditForm>
 <h2>User List</h2>
 <table>
     <thead>
         <tr>
-            <th>Name</th>
+            
             <th>ID</th>
+            <th>Name</th>
             <th>Mobile</th>
             <th>MailID</th>
             <th>Degree</th>
-            <th>Departments</th>
+            <th>Course</th>
             <th>Photo</th>
             <th>DOB</th>
-            <th>Selected</th>
+            <th>Team</th>
             <th>Gender</th>
-            <th>Time</th>
+            <th>Chech-In Time</th>
             <th>Language</th>
-            <th>DateTime</th>
-            @* <th>File</th> *@
+            <th>Joining Date</th>
+            <th>Resume</th>
             <th>Amount</th>
             <th>Actions</th>
         </tr>
@@ -213,7 +189,7 @@
 
                 <td>@personalInfo.DateTime.ToString("dd/MM/yyyy HH:mm")</td>
 
-@* <td>
+<td>
     @if (!string.IsNullOrEmpty(personalInfo.File))
     {
         <a href="@($"uploads/{personalInfo.File}")" target="_blank">@personalInfo.File</a>
@@ -222,7 +198,7 @@
     {
         <span>No File</span>
     }
-</td> *@
+</td>
 <td>@personalInfo.Amount</td>
 
                 <td>
@@ -234,9 +210,39 @@
     </tbody>
 </table>
 
-@code {
-    @*  *@
 
+@code {
+    
+void OnLanguageChanged(string lang, object checkedValue)
+    {
+        bool isChecked = checkedValue is bool b && b;
+        if (isChecked)
+        {
+            if (!newInfo.Languages.Contains(lang))
+                newInfo.Languages.Add(lang);
+        }
+        else
+        {
+            newInfo.Languages.Remove(lang);
+        }
+    }    EditContext editContext;
+    protected override void OnInitialized()
+{
+    editContext = new EditContext(newInfo);
+}
+
+ void validatefield(string field)
+ {
+    var fieldIdentifier=new FieldIdentifier(newInfo,field);
+    editContext.NotifyFieldChanged(fieldIdentifier);
+
+ }
+    PersonalInfo newInfo = new PersonalInfo{DOB = DateTime.Today, Languages = new List<string>()};
+    public bool deleteshow=false;
+string styleColor;
+string displaymessage;
+
+   
       private string fileStatus;
    private async Task UploadFile(InputFileChangeEventArgs e)
 {
@@ -259,13 +265,9 @@
     {
         var uploadFolder = Path.Combine(env.WebRootPath, "uploads");
         Directory.CreateDirectory(uploadFolder);
-
         var filePath = Path.Combine(uploadFolder, file.Name);
-
         await using var stream = new FileStream(filePath, FileMode.Create);
         await file.OpenReadStream(maxFileSize).CopyToAsync(stream);
-
-     
         newInfo.File = file.Name;
 
         fileStatus = $"File '{file.Name}' uploaded successfully!";
@@ -276,6 +278,12 @@
     }
 }
   private List<string> languages = new() { "English", "Spanish", "French", "Hindi" };
+    @* try
+    {
+    }
+    catch(Exception ex)
+    {
+    } *@
    private void Language(string lang, ChangeEventArgs e)
 {
     bool isChecked = e.Value?.ToString().ToLower() == "true";
@@ -299,28 +307,15 @@
     List<PersonalInfo> personalInfos = new List<PersonalInfo>();
     List<string> Degrees = new List<string>
 {
-"Bachelor of Degree","Master of Degree", "Engineering"
+"Bachelor of Arts","Master of Arts", "Engineering", "Bachelor of Science", "Master of Science"
 };
-    PersonalInfo newInfo = new PersonalInfo{DOB = DateTime.Today, Languages = new List<string>()};
+
 
     string button = "Add";
     bool isEdit = false;
     PersonalInfo selectedInfo;
 
     public const long maxFileSize = 1024 * 1024 * 5;
-@* public async Task PhotoUpload(InputFileChangeEventArgs e)
-{
-    var file = e.File;
-    if (file != null)
-    {
-        using var stream = file.OpenReadStream(maxFileSize);
-        var fileSize = new byte[file.Size];
-        await stream.ReadAsync(fileSize);
-
-        newInfo.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(fileSize)}";
-        newInfo.PhotoFileName = file.Name;  // Save file name here
-    }
-} *@
 
     public async Task PhotoUpload(InputFileChangeEventArgs e)
     {
@@ -364,6 +359,8 @@
     private async Task SaveInfo()
 
     {
+        if(editContext.Validate())
+        {
         if (isEdit)
         {
             @* selectedInfo.ID = newInfo.ID; *@
@@ -377,16 +374,17 @@
             selectedInfo.SelectedDepartments = newInfo.SelectedDepartments;
             selectedInfo.Time = newInfo.Time;
            selectedInfo.Languages = newInfo.Languages;
-selectedInfo.DateTime = newInfo.DateTime;
-selectedInfo.File = newInfo.File;
-selectedInfo.Gender = newInfo.Gender;
-selectedInfo.Amount=newInfo.Amount;
+            selectedInfo.DateTime = newInfo.DateTime;
+            selectedInfo.File = newInfo.File;
+            selectedInfo.Gender = newInfo.Gender;
+            selectedInfo.Amount=newInfo.Amount;
 
             isEdit = false;
             button = "Add";
         }
         else
         {
+             
             newInfo.ID = s_id++;
             personalInfos.Add(new PersonalInfo
             {
@@ -402,8 +400,8 @@ selectedInfo.Amount=newInfo.Amount;
                 Time = newInfo.Time,
                 Languages = newInfo.Languages,
                 DateTime = newInfo.DateTime,File=newInfo.File,Gender=newInfo.Gender,Amount=newInfo.Amount
-
             });
+        }
         }
          @* return Task.CompletedTask; *@
        newInfo = new PersonalInfo { DOB = DateTime.Today, Languages = new List<string>() };
@@ -416,6 +414,14 @@ selectedInfo.Amount=newInfo.Amount;
 
         personalInfos.Remove(id);
 
+    }
+    public async void Add()
+    {
+        await Alert("Added successfully");
+    }
+    public async Task Alert(string Message)
+    {
+        await JSRuntime.InvokeAsync<Object>("Alert",Message);
     }
 
 }
