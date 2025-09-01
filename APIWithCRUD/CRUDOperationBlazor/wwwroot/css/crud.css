@@ -1,0 +1,92 @@
+.form-input {
+    margin-bottom: 10px;
+}
+
+input {
+    padding: 6px 10px;
+    border: 1px solid hsla(0, 0%, 80%, 0.684);
+    border-radius: 4px;
+    width: 300px;
+}
+
+button {
+    margin-right: 5px;
+    padding: 5px 12px;
+    background-color: hsl(277, 95%, 38%);
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+
+
+table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+h2 {
+    margin-top: 30px;
+    font-weight: bold;
+}
+.input-group {
+  display: flex;
+  align-items: center; /* vertically center input and label */
+  gap: 0.5rem; /* some space between input and label */
+  margin-bottom: 0.25rem;
+}
+
+.input-group input[type="checkbox"],
+.input-group input[type="radio"] {
+  /* Optional: consistent size */
+  width: 18px;
+  height: 18px;
+}
+.form-input {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-input label {
+  width: 120px; /* fixed width to align all labels */
+  font-weight: 600;
+}
+.form-input {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.form-input > label {
+  width: 130px; /* fixed width for all labels to align them vertically */
+  font-weight: 600;
+}
+
+.input-inline-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* space between radio/checkbox inputs */
+  flex-wrap: wrap; /* allow wrapping on small screens */
+}
+
+.input-inline-group input[type="radio"],
+.input-inline-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.input-inline-group label {
+  margin-right: 1rem; /* space after each label */
+  cursor: pointer;
+  user-select: none;
+}
