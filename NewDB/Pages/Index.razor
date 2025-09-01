@@ -1,0 +1,313 @@
+﻿@page "/"
+@using NewDB.Models
+@using static NewDB.Models.StudentInfo
+@inject NewDB.Models.StudentsService studentService
+
+
+<div class="form-input">
+    <label for="nameInput">Name:</label>
+    <input type="text" @bind="newInfo.Name" placeholder="Name">
+</div>
+<div class="form-input">
+    <label for="nameInput">MailID:</label>
+    <input type="text" @bind="newInfo.MailID" placeholder="MailID">
+</div>
+<div class="form-input">
+    <label for="nameInput">MobileNumber:</label>
+    <input type="text" @bind="newInfo.Mobile" placeholder="MobileNumber">
+</div>
+<div class="form-input">
+    <label>Photo:</label>
+    <InputFile OnChange="OnInputFileChange" />
+</div>
+<div class="form-input">
+    <label>Degree:</label>
+    <InputSelect @bind-Value="newInfo.Degree" TValue="string">
+        <option value="">Select Degree</option>
+        @foreach (var dept in Degrees)
+        {
+            <option value="@dept">@dept</option>
+        }
+    </InputSelect>
+</div>
+@if (!string.IsNullOrEmpty(newInfo.Degree))
+{
+    <div class="form-input">
+        <textarea @bind="newInfo.Department" placeholder="Enter your Department here"></textarea>
+
+    </div>
+}
+<div class="form-input">
+    <label for="nameInput">DOB:</label>
+    <InputDate @bind-Value="newInfo.DOB" />
+
+
+</div>
+<div class="form-input">
+    <label for="nameInput">Department:</label>
+    <select multiple @bind="newInfo.SelectedDepartments">
+        @foreach (var dept in departments)
+        {
+            <option value="@dept">@dept</option>
+        }
+    </select>
+</div>
+<div class="form-input">
+    <label for="nameInput">Time:</label>
+    <InputText @bind-Value="newInfo.Time" type="time"></InputText>
+</div>
+<div class="form-input">
+    <label>DateTime:</label>
+    <input type="datetime-local" @bind="newInfo.DateTime" />
+</div>
+
+<div class="form-input">
+    <label>Language:</label>
+    <div class="input-inline-group">
+        @foreach (var lang in languages)
+        {
+            <input type="checkbox" checked="@newInfo.Languages.Contains(lang)" @onchange="e => Language(lang, e)" />
+            <label>@lang</label>
+        }
+    </div>
+</div>
+@* <div class="form-input">
+    <label>Gender:</label>
+    <div class="input-inline-group">
+        <InputRadioGroup @bind-Value="newInfo.Gender">
+            <InputRadio id="male" Value="GenderEnum.Male" />
+            <label for="male">Male</label>
+
+            <InputRadio id="female" Value="GenderEnum.Female" />
+            <label for="female">Female</label>
+
+            <InputRadio id="other" Value="GenderEnum.Other" />
+            <label for="other">Other</label>
+        </InputRadioGroup>
+    </div>
+</div> *@
+<div class="form-input">
+    <label for="number">Amount:</label>
+    <input type="number" @bind="newInfo.Amount"/>
+</div>
+<button @onclick="SaveInfo">@button</button>
+<h2>Student List</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Mobile</th>
+            <th>MailID</th>
+            <th>Degree</th>
+            <th>Departments</th>
+            <th>Photo</th>
+            <th>DOB</th>
+            <th>Selected</th>
+            <th>Time</th>
+            <th>DateTime</th>
+            <th>Language</th>
+            <th>Amount</th>
+            @* <th>Gender</th> *@
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (StudentInfo personalInfo in personalInfos)
+        {
+            <tr>
+                <td>@personalInfo.Name</td>
+                <td>@personalInfo.ID</td>
+                <td>@personalInfo.Mobile</td>
+                <td>@personalInfo.MailID</td>
+                <td>@personalInfo.Degree</td>
+                <td>@personalInfo.Department</td>
+
+                <td>@if (personalInfo.Photo != null && personalInfo.Photo.Length > 0)
+                    {
+                        <img src="data:image/png;base64,@Convert.ToBase64String(personalInfo.Photo)" alt="Uploaded Image"
+                            style="max-width: 300px; max-height: 300px;" />
+                    }
+                                else
+                    {
+                        <span>No Photo</span>
+                    }
+
+                </td>
+                <td>@personalInfo.DOB.ToString("yyyy-MM-dd")</td>
+                @* <td>@personalInfo.SelectedDepartments</td> *@
+                <td>@(personalInfo.SelectedDepartments != null ? string.Join(", ", personalInfo.SelectedDepartments) : "")
+                </td>
+                <td>@personalInfo.Time</td>
+                <td>@personalInfo.DateTime</td>
+                <td>@(personalInfo.Languages != null ? string.Join(", ", personalInfo.Languages) : "")</td>
+                <td>@personalInfo.Amount</td>
+                @* <td>@personalInfo.Gender</td> *@
+                <td>
+                    <button @onclick="() => EditInfo(personalInfo)">Edit</button>
+                    <button @onclick="() => DeleteInfo(personalInfo)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+       private List<string> languages = new() { "English", "Spanish", "French", "Hindi" };
+    private void Language(string lang, ChangeEventArgs e)
+    {
+        bool isChecked = e.Value?.ToString().ToLower() == "true";
+
+        if (isChecked)
+        {
+            if (!newInfo.Languages.Contains(lang))
+                newInfo.Languages.Add(lang);
+        }
+        else
+        {
+            if (newInfo.Languages.Contains(lang))
+                newInfo.Languages.Remove(lang);
+        }
+    }
+    List<string> departments = new() { "HR", "Sales", "IT", "Finance" };
+    void OnDepartmentsChanged(ChangeEventArgs e)
+    {
+        var selectedValues = e.Value as string[];
+        if (selectedValues != null)
+        {
+            newInfo.SelectedDepartments = selectedValues;
+        }
+        else if (e.Value is not null)
+        {
+            newInfo.SelectedDepartments = new string[] { e.Value.ToString() };
+        }
+        else
+        {
+            newInfo.SelectedDepartments = Array.Empty<string>();
+        }
+    }
+    private static int s_id = 1;
+    List<StudentInfo> personalInfos = new();
+    List<string> Degrees = new List<string>
+{
+"Bachelor of Degree","Master of Degree", "Engineering"
+};
+    StudentInfo newInfo = new();
+
+    string button = "Add";
+    bool isEdit = false;
+    StudentInfo selectedInfo;
+
+    @* private string? ImageDataUrl; *@
+
+    public const long maxFileSize = 1024 * 1024 * 5;
+
+    public async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var stream = file.OpenReadStream(maxFileSize);
+            var buffer = new byte[file.Size];
+            await stream.ReadAsync(buffer);
+
+            newInfo.Photo = buffer; // assign raw bytes directly
+        }
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        personalInfos = studentService.GetAllStudent();
+        return Task.CompletedTask;
+    }
+
+
+
+    @* Edit the data *@
+    public void EditInfo(StudentInfo personal)
+    {
+        isEdit = true;
+        selectedInfo = personal;
+
+        newInfo.ID = personal.ID;
+        newInfo.Name = personal.Name;
+        newInfo.Mobile = personal.Mobile;
+        newInfo.MailID = personal.MailID;
+        newInfo.Photo = personal.Photo;
+        newInfo.Degree = personal.Degree;
+        newInfo.Department = personal.Department;
+        newInfo.DOB = personal.DOB;
+        newInfo.SelectedDepartments = personal.SelectedDepartments;
+        newInfo.Time=personal.Time;
+        @* newInfo.DateTime = newInfo.DateTime.ToUniversalTime(); *@
+newInfo.DateTime=personal.DateTime;
+
+        newInfo.Languages=personal.Languages;
+        newInfo.Amount=personal.Amount;
+
+        button = "Update";
+    }
+    @* Create the form *@
+
+    public void SaveInfo()
+    {
+        if (isEdit)
+        {
+            var updatedInfo = new StudentInfo
+            {
+                ID = newInfo.ID,
+                Name = newInfo.Name,
+                Mobile = newInfo.Mobile,
+                MailID = newInfo.MailID,
+                Photo = newInfo.Photo ?? selectedInfo.Photo,
+                Degree = newInfo.Degree,
+                Department = newInfo.Department,
+                DOB = newInfo.DOB,
+                SelectedDepartments = newInfo.SelectedDepartments,
+                Time=newInfo.Time,
+                 DateTime=newInfo.DateTime,
+                Languages=newInfo.Languages,Amount=newInfo.Amount
+            };
+
+            studentService.UpdateRec(updatedInfo);
+
+            var existing = personalInfos.FirstOrDefault(p => p.ID == selectedInfo.ID);
+            if (existing != null)
+            {
+                existing.Name = updatedInfo.Name;
+                existing.Mobile = updatedInfo.Mobile;
+                existing.MailID = updatedInfo.MailID;
+                existing.Photo = newInfo.Photo;
+                existing.Degree = newInfo.Degree;
+                existing.Department = newInfo.Department;
+                existing.DOB = newInfo.DOB;
+                existing.SelectedDepartments = newInfo.SelectedDepartments;
+                existing.Time=newInfo.Time;
+                existing.DateTime=newInfo.DateTime;
+                existing.Languages=newInfo.Languages;
+                existing.Amount=newInfo.Amount;
+            }
+
+            isEdit = false;
+            button = "Add";
+        }
+        else
+        {
+            
+            studentService.Add(newInfo);
+            Console.WriteLine($"Saved DateTime: {newInfo.DateTime}");
+            personalInfos = studentService.GetAllStudent();
+        }
+
+        newInfo = new StudentInfo();
+    }
+
+
+    @* Delete the data *@
+    public void DeleteInfo(StudentInfo info)
+    {
+        studentService.DeleteRec(info);
+        personalInfos = studentService.GetAllStudent();
+    }
+
+
+}
